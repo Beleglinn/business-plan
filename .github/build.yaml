@@ -1,0 +1,37 @@
+name: Build (Maven / Quarkus)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven  # aktiviert Maven-Cache automatisch
+
+      - name: Build & Test
+        run: mvn -B -ntp clean verify
+
+      - name: Paket bauen (Quarkus JAR)
+        run: mvn -B -ntp package -DskipTests
+
+      - name: Artefakte hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarkus-build
+          path: |
+            target/*.jar
+            target/quarkus-app/**
+          if-no-files-found: warn
